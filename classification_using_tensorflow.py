@@ -6,11 +6,13 @@ import tensorflow as tf
 
 
 def load_dataset():
-    # load dataset
+    # load dataset and seperate into training and testing sets
     (train_x, train_y), (test_x, test_y) = tf.keras.datasets.mnist.load_data()
-    # reshape dataset to have a single channel
+
+    # reshape dataset to have a single channel (grayscale)
     train_x = train_x.reshape((train_x.shape[0], 28, 28, 1))
     test_x = test_x.reshape((test_x.shape[0], 28, 28, 1))
+
     # one hot encode target values
     train_y = tf.keras.utils.to_categorical(train_y)
     test_y = tf.keras.utils.to_categorical(test_y)
@@ -18,12 +20,13 @@ def load_dataset():
 
 
 def scale_pixels(train, test):
-    # convert from integers to floats
     train_norm = train.astype('float32')
     test_norm = test.astype('float32')
+
     # normalize to range 0-1
     train_norm = train_norm / 255.0
     test_norm = test_norm / 255.0
+
     # return normalized images
     return train_norm, test_norm
 
@@ -31,12 +34,16 @@ def scale_pixels(train, test):
 def define_model():
     model = tf.keras.models.Sequential()
     model.add(tf.keras.layers.Conv2D(32, (3, 3), activation='relu',
-                                     kernel_initializer='he_uniform',
-                                     input_shape=(28, 28, 1)))
+              kernel_initializer='he_uniform', input_shape=(28, 28, 1)))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu', 
+              kernel_initializer='he_uniform'))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu', 
+              kernel_initializer='he_uniform'))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(100, activation='relu',
-                                    kernel_initializer='he_uniform'))
+              kernel_initializer='he_uniform'))
     model.add(tf.keras.layers.Dense(10, activation='softmax'))
     # compile model
     opt = tf.keras.optimizers.SGD(learning_rate=0.01, momentum=0.9)
